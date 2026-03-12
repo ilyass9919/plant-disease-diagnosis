@@ -1,0 +1,24 @@
+version: v1_20260309_1523
+model_file: tomato_efficientnetb0_v1_20260309_1523.keras
+architecture: EfficientNetB0
+input_size:
+- 224
+- 224
+num_classes: 8
+class_names:
+- Tomato_Bacterial_Spot
+- Tomato_Early_Blight
+- Tomato_Healthy
+- Tomato_Late_Blight
+- Tomato_Leaf_Mold
+- Tomato_Mosaic_Virus
+- Tomato_Septoria_Leaf_Spot
+- Tomato_Yellow_Leaf_Curl
+preprocessing: efficientnet
+thresholds:
+  confident: 0.75
+  uncertain: 0.5
+trained_on: PlantDoc + PlantVillage (tomato subset, pooled)
+training_date: '20260309_1523'
+val_accuracy: 0.9306
+fine_tune_from_layer: 208
