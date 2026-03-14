@@ -14,10 +14,10 @@ This system is built around a computer vision model trained on **13,832 images**
 
 | Class | Description |
 |-------|-------------|
-| `Tomato_Bacterial_Spot` | Xanthomonas spp. — dark lesions with yellow halos |
-| `Tomato_Early_Blight` | Alternaria solani — concentric ring pattern on older leaves |
+| `Tomato_Bacterial_Spot` | Xanthomonas spp. - dark lesions with yellow halos |
+| `Tomato_Early_Blight` | Alternaria solani - concentric ring pattern on older leaves |
 | `Tomato_Healthy` | No disease detected |
-| `Tomato_Late_Blight` | Phytophthora infestans — large greasy dark lesions |
+| `Tomato_Late_Blight` | Phytophthora infestans - large greasy dark lesions |
 | `Tomato_Leaf_Mold` | Passalora fulva - olive-green mold on leaf underside |
 | `Tomato_Mosaic_Virus` | ToMV - mottled mosaic pattern, leaf distortion |
 | `Tomato_Septoria_Leaf_Spot` | Septoria lycopersici - small circular spots with dark borders |
