@@ -183,9 +183,9 @@ APP_ENV=development
 
 ## Report Modes
 
-**Static mode** (`REPORT_MODE=static`) — hardcoded agronomic summaries and treatment steps for all 8 disease classes. Works offline, no API key needed.
+**Static mode** (`REPORT_MODE=static`) - hardcoded agronomic summaries and treatment steps for all 8 disease classes. Works offline, no API key needed.
 
-**Agent mode** (`REPORT_MODE=agent`) — uses `gpt-4o-mini` via GitHub Models to generate dynamic, contextual reports. Requires a GitHub personal access token.
+**Agent mode** (`REPORT_MODE=agent`) - uses `gpt-4o-mini` via GitHub Models to generate dynamic, contextual reports. Requires a GitHub personal access token.
 
 ---
 
@@ -194,12 +194,12 @@ APP_ENV=development
 The model was trained on Kaggle using the notebook at `training/train_plantdoc_tomato.ipynb`.
 
 **Datasets:**
-- [PlantDoc](https://www.kaggle.com/datasets/nirmalsankalana/plantdoc-dataset) — 901 tomato images (real field photos)
-- [PlantVillage](https://www.kaggle.com/datasets/emmarex/plantdisease) — 12,931 tomato images (controlled lab photos)
+- [PlantDoc](https://www.kaggle.com/datasets/nirmalsankalana/plantdoc-dataset) - 901 tomato images (real field photos)
+- [PlantVillage](https://www.kaggle.com/datasets/emmarex/plantdisease) - 12,931 tomato images (controlled lab photos)
 
 **Training strategy:**
-- Phase 1: Train classification head only (base frozen) — 20 epochs
-- Phase 2: Fine-tune top 30 layers of EfficientNetB0 — 20 epochs
+- Phase 1: Train classification head only (base frozen) - 20 epochs
+- Phase 2: Fine-tune top 30 layers of EfficientNetB0 - 20 epochs
 - Balanced class weights to handle imbalance
 - EarlyStopping + ReduceLROnPlateau callbacks
 
@@ -212,7 +212,7 @@ The model was trained on Kaggle using the notebook at `training/train_plantdoc_t
 python test_api.py
 ```
 
-The test suite covers all endpoints, edge cases, storage, versioning, and performance — 60+ checks.
+The test suite covers all endpoints, edge cases, storage, versioning, and performance - 60+ checks.
 
 ---
 
