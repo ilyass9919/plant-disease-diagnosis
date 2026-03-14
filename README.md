@@ -41,7 +41,7 @@ This system is built around a computer vision model trained on **13,832 images**
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/` | Health check — returns model info |
+| `GET` | `/` | Health check - returns model info |
 | `POST` | `/predict` | Disease prediction from image |
 | `PATCH` | `/predictions/{id}/review` | Submit human review for uncertain predictions |
 
