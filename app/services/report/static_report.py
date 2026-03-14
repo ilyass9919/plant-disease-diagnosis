@@ -1,11 +1,3 @@
-"""
-static_report.py
-Hardcoded diagnostic reports for each disease class.
-
-Structure is intentionally kept simple so it can be swapped for the
-LLM agent (agent_report.py) later with zero changes to the calling code —
-both modules expose the same generate_report(predicted_class, status) interface.
-"""
 from app.schemas.response import PredictionStatus
 
 # Disease knowledge base 

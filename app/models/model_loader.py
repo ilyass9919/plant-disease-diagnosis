@@ -1,8 +1,3 @@
-"""
-model_loader.py
-Loads the Keras model and model_config.yaml once at application startup.
-All other services import from here — the model is never loaded twice.
-"""
 import os
 import yaml
 import logging
@@ -26,7 +21,7 @@ class ModelConfig:
         self.input_size: tuple = tuple(config_dict["input_size"])      # (224, 224)
         self.num_classes: int  = config_dict["num_classes"]
         self.class_names: list = config_dict["class_names"]
-        self.preprocessing     = config_dict["preprocessing"]          # "efficientnet"
+        self.preprocessing     = config_dict["preprocessing"]          
 
         raw_thresholds         = config_dict.get("thresholds", {})
         # .env can override yaml thresholds

@@ -1,45 +1,6 @@
-node_modules/
-dist/ 
-env
-.env
-.idea/
-.pytest_cache/
-venv/
-/venv
-.vscode/
-.DS_Store
-DS_Store
-secret_config.json
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.log
-
-# Python package files
-*.egg-info/
-*.eggs/
-*.egg
-.Python
-build/
-
 # Jupyter Notebook
 .ipynb_checkpoints/
 *.ipynb_checkpoints
-
-# Type checking and linting
-.mypy_cache/
-.dmypy.json
-dmypy.json
-.pyre/
-
-# Code coverage
-htmlcov/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
 
 # Model files
 *.keras
@@ -52,11 +13,56 @@ coverage.xml
 data/predictions.jsonl
 training/exports/
 
-# IDE settings
+
+#Environment 
+.env
+.env.local
+.env.*.local
+
+# Model files
+saved_models/*.keras
+saved_models/*.h5
+saved_models/*.pb
+
+!saved_models/registry.json
+
+# Prediction data
+data/images/
+data/predictions.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+#Training artifacts
+training/exports/
+training/logs/
+*.ipynb_checkpoints/
+
+# IDEs 
+.vscode/
+.idea/
 *.swp
 *.swo
-*~
-
-# OS generated files
+.DS_Store
 Thumbs.db
-.env.local
+
+# Testing 
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Logs 
+*.log
+logs/

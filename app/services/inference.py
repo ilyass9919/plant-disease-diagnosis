@@ -12,7 +12,7 @@ from app.services.uncertainty import resolve_status
 
 logger = logging.getLogger(__name__)
 
-TOP_K = 3  # number of top predictions to return
+TOP_K = 3  
 
 
 def _preprocess_image(image_bytes: bytes, input_size: tuple) -> np.ndarray:

@@ -1,17 +1,9 @@
-"""
-main.py
-FastAPI application entry point.
 
-Run with:
-    uvicorn app.main:app --reload
-
-Swagger UI: http://localhost:8000/docs
-ReDoc:      http://localhost:8000/redoc
-"""
 import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from app.models.model_loader import get_model
@@ -47,6 +39,13 @@ app = FastAPI(
     ),
     version     = "1.0.0",
     lifespan    = lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],        
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(router)

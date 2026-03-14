@@ -1,9 +1,3 @@
-"""
-uncertainty.py
-Applies confidence thresholds to produce a prediction status.
-Kept separate so thresholds can be changed or extended without
-touching inference or routing logic.
-"""
 from app.schemas.response import PredictionStatus
 from app.models.model_loader import ModelConfig
 
