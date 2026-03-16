@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -18,16 +19,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up — loading model...")
-    download_if_needed()       # ← downloads from HF only if files missing
+    # This ensures the model is present on the Render disk before the app starts
+    download_if_needed()       
     get_model()
     logger.info("Model ready. API is live.")
     yield
     logger.info("Shutting down.")
-
 
 app = FastAPI(
     title       = "Tomato Leaf Disease Diagnostic API",
@@ -46,9 +46,17 @@ app.add_middleware(
     allow_headers = ["*"],
 )
 
+# Important: We include the prediction routes first
 app.include_router(router)
 
-
-@app.get("/ui", include_in_schema=False)
+@app.get("/", include_in_schema=False)
 def serve_ui():
     return FileResponse("interface.html")
+
+@app.get("/health", tags=["System"])
+def health_check():
+    return {
+        "status": "ok",
+        "model_version": "v1_20260309_1523",
+        "architecture": "EfficientNetB0"
+    }
