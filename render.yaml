@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: tomato-disease-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: MODEL_FILE
+        value: tomato_efficientnetb0_v1_20260309_1523.keras
+      - key: SAVED_MODELS_DIR
+        value: saved_models
+      - key: CONFIG_FILE
+        value: training/configs/model_config_v1_20260309_1523.yaml
+      - key: THRESHOLD_CONFIDENT
+        value: "0.60"
+      - key: THRESHOLD_UNCERTAIN
+        value: "0.30"
+      - key: PREDICTIONS_LOG
+        value: data/predictions.jsonl
+      - key: PREDICTIONS_IMAGES_DIR
+        value: data/images
+      - key: REPORT_MODE
+        value: agent
+      - key: APP_ENV
+        value: production
+      # GITHUB_TOKEN
+      # HF_REPO_ID
+```

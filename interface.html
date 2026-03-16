@@ -20,7 +20,9 @@
     --text:      #e8f0e9;
     --muted:     #7a9480;
     --warn:      #f59e0b;
+    --warn-dim:  #3a2a00;
     --fail:      #f87171;
+    --fail-dim:  #2d1515;
     --mono:      'DM Mono', monospace;
     --sans:      'DM Sans', sans-serif;
   }
@@ -33,7 +35,7 @@
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 2rem 1rem;
+    padding: 2rem 1rem 4rem;
   }
 
   .app {
@@ -41,13 +43,13 @@
     max-width: 780px;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
 
   header {
     display: flex;
-    align-items: baseline;
-    gap: 1rem;
+    align-items: center;
+    gap: 10px;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
   }
@@ -57,22 +59,42 @@
     background: var(--green);
     border-radius: 50%;
     flex-shrink: 0;
-    margin-bottom: 3px;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
   }
 
   h1 {
-    font-family: var(--sans);
     font-size: 15px;
     font-weight: 500;
     letter-spacing: 0.02em;
     color: var(--text);
   }
 
+  .api-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+
+  .status-dot.online  { background: var(--green); }
+  .status-dot.offline { background: var(--fail); }
+
   .version {
     font-family: var(--mono);
     font-size: 11px;
     color: var(--muted);
-    margin-left: auto;
   }
 
   .card {
@@ -80,10 +102,11 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     overflow: hidden;
+    transition: border-color 0.2s;
   }
 
   .card-header {
-    padding: 12px 16px;
+    padding: 11px 16px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -92,7 +115,7 @@
 
   .card-label {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     color: var(--muted);
     text-transform: uppercase;
@@ -101,6 +124,7 @@
 
   .card-body { padding: 16px; }
 
+  /* Upload */
   .upload-zone {
     border: 1.5px dashed var(--border2);
     border-radius: 8px;
@@ -112,17 +136,20 @@
     background: var(--surface2);
   }
 
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--green); background: var(--green-dim); }
-  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-
-  .upload-icon {
-    width: 32px; height: 32px;
-    margin: 0 auto 12px;
-    opacity: 0.4;
+  .upload-zone:hover, .upload-zone.drag {
+    border-color: var(--green);
+    background: var(--green-dim);
   }
 
-  .upload-text { font-size: 13px; color: var(--muted); }
+  .upload-zone input {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%;
+  }
+
+  .upload-icon { width: 28px; height: 28px; margin: 0 auto 10px; opacity: 0.35; }
+  .upload-text  { font-size: 13px; color: var(--muted); }
   .upload-text span { color: var(--green); }
+  .upload-hint  { font-size: 11px; color: var(--border2); margin-top: 5px; font-family: var(--mono); }
 
   .preview-wrap {
     display: none;
@@ -134,7 +161,7 @@
 
   .preview-wrap img {
     width: 100%;
-    max-height: 260px;
+    max-height: 280px;
     object-fit: contain;
     display: block;
   }
@@ -142,23 +169,56 @@
   .preview-clear {
     position: absolute;
     top: 8px; right: 8px;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.65);
     border: 1px solid var(--border2);
     border-radius: 6px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
     padding: 4px 10px;
     cursor: pointer;
     font-family: var(--mono);
+    transition: color 0.15s;
   }
 
   .preview-clear:hover { color: var(--text); }
+
+  /* Metadata collapsible */
+  .meta-toggle {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.15s;
+  }
+
+  .meta-toggle:hover { opacity: 0.75; }
+
+  .meta-toggle .arrow {
+    display: inline-block;
+    transition: transform 0.2s;
+    font-size: 9px;
+  }
+
+  .meta-toggle.open .arrow { transform: rotate(180deg); }
+
+  .meta-body {
+    display: none;
+    padding-top: 4px;
+  }
+
+  .meta-body.open { display: block; }
 
   .meta-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-top: 10px;
   }
 
   .field { display: flex; flex-direction: column; gap: 5px; }
@@ -181,13 +241,14 @@
     font-size: 12px;
     outline: none;
     transition: border-color 0.15s;
+    width: 100%;
   }
 
-  .field input:focus { border-color: var(--green-mid); }
+  .field input:focus   { border-color: var(--green-mid); }
   .field input::placeholder { color: var(--border2); }
-
   .field.full { grid-column: span 2; }
 
+  /* Button */
   .btn {
     width: 100%;
     padding: 11px;
@@ -202,20 +263,47 @@
     transition: opacity 0.15s;
     margin-top: 14px;
     letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
 
-  .btn:hover { opacity: 0.88; }
+  .btn:hover    { opacity: 0.88; }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  .btn.loading { opacity: 0.6; }
+  .btn-spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(10,26,14,0.25);
+    border-top-color: #0a1a0e;
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    display: none;
+  }
 
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error */
+  .error-box {
+    display: none;
+    background: var(--fail-dim);
+    border: 1px solid #4a2020;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fail);
+    line-height: 1.5;
+  }
+
+  /* Result card */
   .result-card { display: none; }
 
   .status-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .badge {
@@ -237,12 +325,27 @@
     color: var(--muted);
   }
 
+  /* Uncertain warning */
+  .uncertain-warning {
+    display: none;
+    background: #3a2a0040;
+    border: 1px solid #f59e0b40;
+    border-radius: 8px;
+    padding: 10px 13px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: var(--warn);
+    line-height: 1.55;
+  }
+
+  .uncertain-warning strong { font-weight: 500; }
+
   .disease-name {
     font-size: 22px;
     font-weight: 300;
-    color: var(--text);
     letter-spacing: -0.01em;
     margin-bottom: 4px;
+    color: var(--text);
   }
 
   .model-ver {
@@ -252,7 +355,7 @@
     margin-bottom: 16px;
   }
 
-  .conf-bar-wrap { margin-bottom: 20px; }
+  .conf-bar-wrap { margin-bottom: 18px; }
 
   .conf-bar-label {
     display: flex;
@@ -273,14 +376,10 @@
   .conf-bar-fill {
     height: 100%;
     border-radius: 2px;
-    transition: width 0.4s ease;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 16px 0;
-  }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
   .section-label {
     font-family: var(--mono);
@@ -293,7 +392,7 @@
 
   .summary-text {
     font-size: 13px;
-    line-height: 1.7;
+    line-height: 1.72;
     color: #b8cfba;
     margin-bottom: 16px;
   }
@@ -324,14 +423,10 @@
   .topk-grid {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
   }
 
-  .topk-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .topk-row { display: flex; align-items: center; gap: 10px; }
 
   .topk-name {
     font-family: var(--mono);
@@ -352,39 +447,18 @@
     height: 100%;
     background: var(--green-mid);
     border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .topk-val {
     font-family: var(--mono);
     font-size: 11px;
     color: var(--muted);
-    min-width: 36px;
+    min-width: 38px;
     text-align: right;
   }
 
-  .error-box {
-    display: none;
-    background: #2d1515;
-    border: 1px solid #4a2020;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--fail);
-  }
-
-  .spinner {
-    display: none;
-    width: 16px; height: 16px;
-    border: 2px solid rgba(74,222,128,0.2);
-    border-top-color: var(--green);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin: 0 auto;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
+  /* Prediction ID row */
   .prediction-id-row {
     display: flex;
     align-items: center;
@@ -393,6 +467,7 @@
     background: var(--surface2);
     border-radius: 6px;
     margin-top: 16px;
+    gap: 10px;
   }
 
   .prediction-id-label {
@@ -401,24 +476,67 @@
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
+    white-space: nowrap;
   }
 
   .prediction-id-val {
     font-family: var(--mono);
     font-size: 11px;
-    color: var(--muted);
+    color: #4a6650;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
   }
+
+  .copy-btn {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { color: var(--text); border-color: var(--green-mid); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green-dim); }
+
+  /* Failed section */
+  .failed-msg {
+    display: none;
+    font-size: 13px;
+    color: var(--fail);
+    line-height: 1.65;
+    padding: 12px 14px;
+    background: var(--fail-dim);
+    border-radius: 8px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 </style>
 </head>
 <body>
 <div class="app">
 
+  <!-- Header -->
   <header>
     <div class="logo-dot"></div>
     <h1>Tomato Leaf Diagnostic</h1>
-    <span class="version" id="api-version">connecting...</span>
+    <div class="api-status">
+      <div class="status-dot" id="status-dot"></div>
+      <span class="version" id="api-version">connecting...</span>
+    </div>
   </header>
 
+  <!-- Image input -->
   <div class="card">
     <div class="card-header">
       <span class="card-label">Image Input</span>
@@ -430,6 +548,7 @@
           <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <p class="upload-text">Drop a leaf photo here or <span>browse</span></p>
+        <p class="upload-hint">JPEG · PNG · BMP · WebP</p>
       </div>
       <div class="preview-wrap" id="preview-wrap">
         <img id="preview-img" src="" alt="preview">
@@ -438,12 +557,16 @@
     </div>
   </div>
 
+  <!-- Metadata (collapsible) -->
   <div class="card">
     <div class="card-header">
       <span class="card-label">Metadata</span>
-      <span style="font-size:11px;color:var(--muted);margin-left:auto;">optional</span>
+      <span style="font-size:11px;color:var(--muted);">optional</span>
+      <button class="meta-toggle" id="meta-toggle">
+        show <span class="arrow">▼</span>
+      </button>
     </div>
-    <div class="card-body">
+    <div class="card-body meta-body" id="meta-body">
       <div class="meta-grid">
         <div class="field">
           <label>Latitude</label>
@@ -466,25 +589,38 @@
           <input type="text" id="notes" placeholder="Lower leaf, spotted 2 days ago">
         </div>
       </div>
-      <button class="btn" id="submit-btn" disabled>Analyse leaf</button>
-      <div class="spinner" id="spinner"></div>
     </div>
   </div>
 
+  <!-- Submit button -->
+  <button class="btn" id="submit-btn" disabled>
+    <div class="btn-spinner" id="btn-spinner"></div>
+    <span id="btn-text">Analyse leaf</span>
+  </button>
+
+  <!-- Error -->
   <div class="error-box" id="error-box"></div>
 
+  <!-- Result -->
   <div class="card result-card" id="result-card">
     <div class="card-header">
       <span class="card-label">Diagnostic Result</span>
     </div>
     <div class="card-body">
+
       <div class="status-row">
         <span class="badge" id="status-badge">—</span>
         <span class="inference-time" id="infer-time">—</span>
       </div>
 
+      <!-- Uncertain warning -->
+      <div class="uncertain-warning" id="uncertain-warning">
+        <strong>Low confidence</strong> — this prediction has been flagged for human review.
+        Treat the result as a preliminary indication only and consult an agronomist.
+      </div>
+
       <div class="disease-name" id="disease-name">—</div>
-      <div class="model-ver" id="model-ver">—</div>
+      <div class="model-ver"    id="model-ver">—</div>
 
       <div class="conf-bar-wrap">
         <div class="conf-bar-label">
@@ -498,6 +634,7 @@
 
       <div class="divider"></div>
 
+      <!-- Report (hidden when FAILED) -->
       <div id="report-section">
         <p class="section-label">Summary</p>
         <p class="summary-text" id="summary-text">—</p>
@@ -505,10 +642,10 @@
         <ul class="treatment-list" id="treatment-list"></ul>
       </div>
 
-      <div id="failed-section" style="display:none">
-        <p class="summary-text" style="color:var(--fail)">
-          The image could not be analysed. Please submit a clearer photo of the tomato leaf.
-        </p>
+      <!-- FAILED message -->
+      <div class="failed-msg" id="failed-msg">
+        The image could not be analysed. Please submit a clearer, well-lit photo
+        of the tomato leaf with the leaf filling most of the frame.
       </div>
 
       <div class="divider"></div>
@@ -519,171 +656,226 @@
       <div class="prediction-id-row">
         <span class="prediction-id-label">Prediction ID</span>
         <span class="prediction-id-val" id="pred-id">—</span>
+        <button class="copy-btn" id="copy-btn">copy</button>
       </div>
+
     </div>
   </div>
 
 </div>
 
 <script>
-const API = 'http://127.0.0.1:8000';
+  // Config 
+  // Change this to your deployed Render URL when going live:
+  // const API = 'https://tomato-disease-api.onrender.com';
+  const API = window.location.origin;
 
-async function ping() {
-  try {
-    const r = await fetch(`${API}/`);
-    const d = await r.json();
-    document.getElementById('api-version').textContent = d.model_version || 'connected';
-  } catch {
-    document.getElementById('api-version').textContent = 'api offline';
-    document.getElementById('api-version').style.color = 'var(--fail)';
-  }
-}
-
-ping();
-
-const dropzone   = document.getElementById('dropzone');
-const fileInput  = document.getElementById('file-input');
-const previewWrap= document.getElementById('preview-wrap');
-const previewImg = document.getElementById('preview-img');
-const clearBtn   = document.getElementById('clear-btn');
-const submitBtn  = document.getElementById('submit-btn');
-const spinner    = document.getElementById('spinner');
-const errorBox   = document.getElementById('error-box');
-const resultCard = document.getElementById('result-card');
-
-let selectedFile = null;
-
-function showPreview(file) {
-  selectedFile = file;
-  const url = URL.createObjectURL(file);
-  previewImg.src = url;
-  dropzone.style.display = 'none';
-  previewWrap.style.display = 'block';
-  submitBtn.disabled = false;
-}
-
-function clearPreview() {
-  selectedFile = null;
-  previewImg.src = '';
-  dropzone.style.display = 'block';
-  previewWrap.style.display = 'none';
-  submitBtn.disabled = true;
-  fileInput.value = '';
-  resultCard.style.display = 'none';
-  errorBox.style.display = 'none';
-}
-
-fileInput.addEventListener('change', e => {
-  if (e.target.files[0]) showPreview(e.target.files[0]);
-});
-
-clearBtn.addEventListener('click', clearPreview);
-
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('drag');
-  const f = e.dataTransfer.files[0];
-  if (f && f.type.startsWith('image/')) showPreview(f);
-});
-
-function getConfColor(val) {
-  if (val >= 0.60) return '#4ade80';
-  if (val >= 0.30) return '#f59e0b';
-  return '#f87171';
-}
-
-function parseTreatment(text) {
-  if (!text) return [];
-  return text.split('\n')
-    .map(l => l.trim())
-    .filter(l => l.length > 0)
-    .map(l => l.replace(/^\d+\.\s*/, ''));
-}
-
-submitBtn.addEventListener('click', async () => {
-  if (!selectedFile) return;
-
-  submitBtn.style.display = 'none';
-  spinner.style.display = 'block';
-  errorBox.style.display = 'none';
-  resultCard.style.display = 'none';
-
-  const formData = new FormData();
-  formData.append('file', selectedFile);
-
-  const meta = {};
-  const lat    = document.getElementById('lat').value;
-  const lng    = document.getElementById('lng').value;
-  const device = document.getElementById('device').value;
-  const appver = document.getElementById('appver').value;
-  const notes  = document.getElementById('notes').value;
-
-  if (lat)    meta.latitude     = parseFloat(lat);
-  if (lng)    meta.longitude    = parseFloat(lng);
-  if (device) meta.device_model = device;
-  if (appver) meta.app_version  = appver;
-  if (notes)  meta.notes        = notes;
-
-  if (Object.keys(meta).length > 0) {
-    formData.append('metadata_json', JSON.stringify(meta));
+  // API health ping 
+  async function ping() {
+    const dot = document.getElementById('status-dot');
+    const ver = document.getElementById('api-version');
+    try {
+      const r = await fetch(`${API}/`);
+      const d = await r.json();
+      dot.className = 'status-dot online';
+      ver.textContent = d.model_version || 'connected';
+    } catch {
+      dot.className = 'status-dot offline';
+      ver.textContent = 'api offline';
+      ver.style.color = 'var(--fail)';
+    }
   }
 
-  try {
-    const res  = await fetch(`${API}/predict`, { method: 'POST', body: formData });
-    const data = await res.json();
+  ping();
 
-    if (!res.ok) {
-      throw new Error(data.detail || `HTTP ${res.status}`);
+  // Element refs 
+  const dropzone    = document.getElementById('dropzone');
+  const fileInput   = document.getElementById('file-input');
+  const previewWrap = document.getElementById('preview-wrap');
+  const previewImg  = document.getElementById('preview-img');
+  const clearBtn    = document.getElementById('clear-btn');
+  const submitBtn   = document.getElementById('submit-btn');
+  const btnSpinner  = document.getElementById('btn-spinner');
+  const btnText     = document.getElementById('btn-text');
+  const errorBox    = document.getElementById('error-box');
+  const resultCard  = document.getElementById('result-card');
+  const metaToggle  = document.getElementById('meta-toggle');
+  const metaBody    = document.getElementById('meta-body');
+
+  let selectedFile  = null;
+
+  // Metadata toggle 
+  metaToggle.addEventListener('click', () => {
+    const isOpen = metaBody.classList.toggle('open');
+    metaToggle.classList.toggle('open', isOpen);
+    metaToggle.querySelector('span:first-child').textContent = isOpen ? 'hide' : 'show';
+  });
+
+  // Preview 
+  function showPreview(file) {
+    selectedFile = file;
+    previewImg.src = URL.createObjectURL(file);
+    dropzone.style.display    = 'none';
+    previewWrap.style.display = 'block';
+    submitBtn.disabled        = false;
+  }
+
+  function clearPreview() {
+    selectedFile              = null;
+    previewImg.src            = '';
+    dropzone.style.display    = 'block';
+    previewWrap.style.display = 'none';
+    submitBtn.disabled        = true;
+    fileInput.value           = '';
+    resultCard.style.display  = 'none';
+    errorBox.style.display    = 'none';
+  }
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) showPreview(e.target.files[0]);
+  });
+
+  clearBtn.addEventListener('click', clearPreview);
+
+  dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', ()  => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) showPreview(f);
+  });
+
+  // Helpers 
+  function confColor(v) {
+    if (v >= 0.60) return '#4ade80';
+    if (v >= 0.30) return '#f59e0b';
+    return '#f87171';
+  }
+
+  function parseTreatment(text) {
+    if (!text) return [];
+    return text.split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0)
+      .map(l => l.replace(/^\d+\.\s*/, ''));
+  }
+
+  function setLoading(on) {
+    submitBtn.disabled      = on;
+    btnSpinner.style.display = on ? 'block' : 'none';
+    btnText.textContent      = on ? 'Analysing...' : 'Analyse leaf';
+  }
+
+  // Copy prediction ID 
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    const id = document.getElementById('pred-id').textContent;
+    if (!id || id === '—') return;
+    navigator.clipboard.writeText(id).then(() => {
+      this.textContent = 'copied!';
+      this.classList.add('copied');
+      setTimeout(() => {
+        this.textContent = 'copy';
+        this.classList.remove('copied');
+      }, 2000);
+    });
+  });
+
+  // Submit 
+  submitBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    errorBox.style.display   = 'none';
+    resultCard.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    const meta    = {};
+    const lat     = document.getElementById('lat').value;
+    const lng     = document.getElementById('lng').value;
+    const device  = document.getElementById('device').value;
+    const appver  = document.getElementById('appver').value;
+    const notes   = document.getElementById('notes').value;
+
+    if (lat)    meta.latitude     = parseFloat(lat);
+    if (lng)    meta.longitude    = parseFloat(lng);
+    if (device) meta.device_model = device;
+    if (appver) meta.app_version  = appver;
+    if (notes)  meta.notes        = notes;
+
+    if (Object.keys(meta).length > 0) {
+      formData.append('metadata_json', JSON.stringify(meta));
     }
 
-    const status    = data.status;
-    const conf      = data.confidence || 0;
-    const isFailed  = status === 'FAILED';
+    try {
+      const res  = await fetch(`${API}/predict`, { method: 'POST', body: formData });
+      const data = await res.json();
 
-    document.getElementById('status-badge').textContent = status;
-    document.getElementById('status-badge').className   = `badge ${status}`;
-    document.getElementById('infer-time').textContent   = `${data.inference_time_ms.toFixed(0)} ms`;
-    document.getElementById('disease-name').textContent =
-      (data.predicted_class || '—').replace(/_/g, ' ');
-    document.getElementById('model-ver').textContent    = data.model_version;
-    document.getElementById('conf-val').textContent     = `${(conf * 100).toFixed(1)}%`;
-    document.getElementById('conf-fill').style.width    = `${(conf * 100).toFixed(1)}%`;
-    document.getElementById('conf-fill').style.background = getConfColor(conf);
-    document.getElementById('pred-id').textContent      = data.prediction_id;
+      if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
 
-    document.getElementById('report-section').style.display = isFailed ? 'none' : 'block';
-    document.getElementById('failed-section').style.display = isFailed ? 'block' : 'none';
+      const status   = data.status;
+      const conf     = data.confidence || 0;
+      const isFailed = status === 'FAILED';
 
-    if (!isFailed) {
-      document.getElementById('summary-text').textContent = data.summary || '—';
-      const steps = parseTreatment(data.recommended_treatment);
-      const ul    = document.getElementById('treatment-list');
-      ul.innerHTML = steps.map((s, i) =>
-        `<li><span class="step-num">${i + 1}.</span><span>${s}</span></li>`
-      ).join('');
+      // Status badge + inference time
+      document.getElementById('status-badge').textContent = status;
+      document.getElementById('status-badge').className   = `badge ${status}`;
+      document.getElementById('infer-time').textContent   = `${Math.round(data.inference_time_ms)} ms`;
+
+      // UNCERTAIN warning
+      document.getElementById('uncertain-warning').style.display =
+        status === 'UNCERTAIN' ? 'block' : 'none';
+
+      // Disease name + model version
+      document.getElementById('disease-name').textContent =
+        (data.predicted_class || '—').replace(/_/g, ' ');
+      document.getElementById('model-ver').textContent = data.model_version;
+
+      // Confidence bar
+      const pct = (conf * 100).toFixed(1);
+      document.getElementById('conf-val').textContent          = `${pct}%`;
+      document.getElementById('conf-fill').style.width         = `${pct}%`;
+      document.getElementById('conf-fill').style.background    = confColor(conf);
+
+      // Report / failed sections
+      document.getElementById('report-section').style.display = isFailed ? 'none'  : 'block';
+      document.getElementById('failed-msg').style.display     = isFailed ? 'block' : 'none';
+
+      if (!isFailed) {
+        document.getElementById('summary-text').textContent = data.summary || '—';
+        const steps = parseTreatment(data.recommended_treatment);
+        document.getElementById('treatment-list').innerHTML = steps.map((s, i) =>
+          `<li><span class="step-num">${i + 1}.</span><span>${s}</span></li>`
+        ).join('');
+      }
+
+      // Top-K
+      document.getElementById('topk-grid').innerHTML =
+        (data.top_k || []).map(t =>
+          `<div class="topk-row">
+            <span class="topk-name">${t.disease_class.replace(/_/g,' ')}</span>
+            <div class="topk-track">
+              <div class="topk-fill" style="width:${(t.confidence*100).toFixed(1)}%"></div>
+            </div>
+            <span class="topk-val">${(t.confidence*100).toFixed(1)}%</span>
+          </div>`
+        ).join('');
+
+      // Prediction ID
+      document.getElementById('pred-id').textContent = data.prediction_id || '—';
+
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      errorBox.textContent   = `Error: ${err.message}`;
+      errorBox.style.display = 'block';
+    } finally {
+      setLoading(false);
     }
-
-    const topk = document.getElementById('topk-grid');
-    topk.innerHTML = (data.top_k || []).map(t =>
-      `<div class="topk-row">
-        <span class="topk-name">${t.disease_class.replace(/_/g,' ')}</span>
-        <div class="topk-track"><div class="topk-fill" style="width:${(t.confidence*100).toFixed(1)}%"></div></div>
-        <span class="topk-val">${(t.confidence*100).toFixed(1)}%</span>
-      </div>`
-    ).join('');
-
-    resultCard.style.display = 'block';
-
-  } catch (err) {
-    errorBox.textContent = `Error: ${err.message}`;
-    errorBox.style.display = 'block';
-  } finally {
-    spinner.style.display = 'none';
-    submitBtn.style.display = 'block';
-  }
-});
+  });
 </script>
 </body>
 </html>
