@@ -1,15 +1,11 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "interface.html",
-      "use": "@vercel/static"
-    }
+    { "src": "interface.html", "use": "@vercel/static" },
+    { "src": "review.html",    "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "interface.html"
-    }
+    { "src": "/review", "dest": "/review.html" },
+    { "src": "/(.*)",   "dest": "/interface.html" }
   ]
 }
