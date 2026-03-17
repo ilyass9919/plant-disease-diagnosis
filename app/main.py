@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting up - loading model...")
+    logger.info("Starting up — loading model...")
     download_if_needed()
     get_model()
     logger.info("Model ready. API is live.")
@@ -39,10 +40,23 @@ app = FastAPI(
     lifespan    = lifespan,
 )
 
+# CORS - allow Vercel frontend + local dev
+VERCEL_URL = os.getenv("VERCEL_URL", "")  
+
+allowed_origins = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+]
+
+if VERCEL_URL:
+    allowed_origins.append(VERCEL_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins  = ["*"],
-    allow_methods  = ["*"],
+    allow_origins  = allowed_origins,
+    allow_methods  = ["GET", "POST", "PATCH", "OPTIONS"],
     allow_headers  = ["*"],
 )
 
