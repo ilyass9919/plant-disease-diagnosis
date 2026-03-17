@@ -41,14 +41,19 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ["*"],
-    allow_methods = ["*"],
-    allow_headers = ["*"],
+    allow_origins  = ["*"],
+    allow_methods  = ["*"],
+    allow_headers  = ["*"],
 )
 
 app.include_router(router)
 
 
-@app.get("/ui", include_in_schema=False)   
-def serve_ui():
+@app.get("/ui", include_in_schema=False)
+def serve_farmer_ui():
     return FileResponse("interface.html")
+
+
+@app.get("/review", include_in_schema=False)
+def serve_review_ui():
+    return FileResponse("review.html")

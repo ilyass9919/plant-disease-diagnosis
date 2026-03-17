@@ -22,7 +22,6 @@ def _ensure_dirs():
 
 
 def _save_image(prediction_id: str, image_bytes: bytes) -> str | None:
-    """Saves raw image bytes to data/images/<id>.jpg. Returns the path string."""
     try:
         image_path = IMAGES_DIR / f"{prediction_id}.jpg"
         image_path.write_bytes(image_bytes)
@@ -43,10 +42,6 @@ def log_prediction(
     image_filename:    str = "unknown",
     metadata:          dict | None = None,
 ) -> str:
-    """
-    Saves the image to disk and appends a full prediction record to the JSONL log.
-    Returns the generated prediction ID.
-    """
     _ensure_dirs()
     prediction_id = str(uuid.uuid4())
     saved_path    = _save_image(prediction_id, image_bytes)
@@ -77,7 +72,6 @@ def log_prediction(
 
 
 def get_prediction(prediction_id: str) -> dict | None:
-    """Finds and returns a single prediction record by ID."""
     if not LOG_PATH.exists():
         return None
     with open(LOG_PATH) as f:
@@ -91,11 +85,25 @@ def get_prediction(prediction_id: str) -> dict | None:
     return None
 
 
+def get_pending_reviews() -> list[dict]:
+    """Returns all UNCERTAIN predictions that have not been reviewed yet."""
+    if not LOG_PATH.exists():
+        return []
+    results = []
+    with open(LOG_PATH) as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+                if (record.get("status") == "UNCERTAIN"
+                        and record.get("human_review") is None):
+                    results.append(record)
+            except json.JSONDecodeError:
+                continue
+    # Most recent first
+    return sorted(results, key=lambda r: r.get("timestamp", ""), reverse=True)
+
+
 def update_human_review(prediction_id: str, review: dict) -> bool:
-    """
-    Updates the human_review field of a prediction record in-place.
-    Returns True if found and updated, False otherwise.
-    """
     if not LOG_PATH.exists():
         return False
 

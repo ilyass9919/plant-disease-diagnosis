@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agronomist Review Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0f1410;
+    --surface:   #161c17;
+    --surface2:  #1e2720;
+    --border:    #2a3a2d;
+    --border2:   #3a4f3e;
+    --green:     #4ade80;
+    --green-dim: #1a3d25;
+    --green-mid: #2d6a3f;
+    --text:      #e8f0e9;
+    --muted:     #7a9480;
+    --warn:      #f59e0b;
+    --warn-dim:  #3a2a00;
+    --fail:      #f87171;
+    --fail-dim:  #2d1515;
+    --mono:      'DM Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .app { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 1.25rem; }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--warn);
+    border-radius: 50%;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  @keyframes spin  { to{transform:rotate(360deg)} }
+  @keyframes fadeIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  h1 { font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+
+  .nav-link {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: color .15s, border-color .15s;
+  }
+  .nav-link:hover { color: var(--green); border-color: var(--green-mid); }
+
+  /* Login screen */
+  .login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1.5rem;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .login-title {
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: .5rem;
+  }
+
+  .login-sub {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    font-family: var(--mono);
+    margin-top: -.5rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .field input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 11px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+    width: 100%;
+  }
+
+  .field input:focus { border-color: var(--green-mid); }
+
+  .login-error {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fail);
+    text-align: center;
+    display: none;
+  }
+
+  /* Buttons */
+  .btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--green);
+    color: #0a1a0e;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:hover    { opacity: .88; }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 7px;
+    padding: 7px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all .15s;
+  }
+  .btn-outline:hover { color: var(--text); border-color: var(--green-mid); }
+
+  /* Dashboard */
+  .dashboard { display: none; flex-direction: column; gap: 1.25rem; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+  .stat-value.warn  { color: var(--warn); }
+  .stat-value.green { color: var(--green); }
+
+  /* Queue */
+  .queue-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .queue-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .queue-empty {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    display: none;
+  }
+
+  .queue-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .spinner-sm {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(74,222,128,.2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin .65s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  /* Review card */
+  .review-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    animation: fadeIn .25s ease;
+    transition: opacity .3s, transform .3s;
+  }
+
+  .review-card.removing {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+
+  .review-card-inner {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+  }
+
+  .card-image-wrap {
+    background: var(--surface2);
+    position: relative;
+    min-height: 180px;
+    overflow: hidden;
+  }
+
+  .card-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    font-size: 11px;
+    font-family: var(--mono);
+  }
+
+  .card-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .card-meta {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .card-prediction {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .card-confidence {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--warn);
+    background: var(--warn-dim);
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .card-details {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .detail-item { display: flex; flex-direction: column; gap: 3px; }
+
+  .detail-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .detail-value {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .farmer-notes {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.5;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border-radius: 6px;
+    border-left: 2px solid var(--border2);
+  }
+
+  /* Disease selector */
+  .review-section { border-top: 1px solid var(--border); padding-top: 12px; }
+
+  .review-section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+
+  .disease-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .disease-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .disease-btn:hover { border-color: var(--green-mid); color: var(--text); }
+
+  .disease-btn.selected {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .disease-btn.is-model-prediction {
+    border-style: dashed;
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+
+  .disease-btn.is-model-prediction.selected {
+    background: var(--green-dim);
+    border-style: solid;
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .reviewer-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .reviewer-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  .reviewer-input:focus { border-color: var(--green-mid); }
+  .reviewer-input::placeholder { color: var(--border2); }
+
+  .submit-review-btn {
+    background: var(--green);
+    color: #0a1a0e;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .15s;
+    white-space: nowrap;
+  }
+
+  .submit-review-btn:hover    { opacity: .88; }
+  .submit-review-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  .review-feedback {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    display: none;
+  }
+
+  .review-feedback.success {
+    background: var(--green-dim);
+    color: var(--green);
+    display: block;
+  }
+
+  .review-feedback.error {
+    background: var(--fail-dim);
+    color: var(--fail);
+    display: block;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .review-card-inner { grid-template-columns: 1fr; }
+    .card-image-wrap   { min-height: 200px; }
+    .disease-grid      { grid-template-columns: repeat(2, 1fr); }
+    .stats-row         { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo-dot"></div>
+    <h1>Agronomist Review Dashboard</h1>
+    <a href="/ui" class="nav-link">← Farmer view</a>
+  </header>
+
+  <!-- Login screen -->
+  <div class="login-screen" id="login-screen">
+    <div class="login-card">
+      <p class="login-title">Agronomist Access</p>
+      <p class="login-sub">Review queue for UNCERTAIN predictions</p>
+      <div class="field">
+        <label>Reviewer ID</label>
+        <input type="text" id="reviewer-id" placeholder="e.g. agro_001" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password-input" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <p class="login-error" id="login-error">Incorrect password</p>
+      <button class="btn" id="login-btn">Sign in</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <p class="stat-label">Pending review</p>
+        <p class="stat-value warn" id="stat-pending">—</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Reviewed this session</p>
+        <p class="stat-value green" id="stat-reviewed">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Signed in as</p>
+        <p class="stat-value" style="font-size:15px;font-family:var(--mono)" id="stat-reviewer">—</p>
+      </div>
+    </div>
+
+    <div class="queue-header">
+      <span class="queue-title">Pending predictions</span>
+      <button class="btn-outline" id="refresh-btn">↻ Refresh</button>
+    </div>
+
+    <div id="queue-loading" class="queue-loading">
+      <span class="spinner-sm"></span> Loading predictions...
+    </div>
+
+    <div id="queue-empty" class="queue-empty">
+      No pending predictions — all caught up! 🎉
+    </div>
+
+    <div id="queue-list"></div>
+
+  </div>
+</div>
+
+<script>
+  // Config 
+  const API = window.location.origin;
+
+  const DISEASE_CLASSES = [
+    'Tomato_Bacterial_Spot',
+    'Tomato_Early_Blight',
+    'Tomato_Healthy',
+    'Tomato_Late_Blight',
+    'Tomato_Leaf_Mold',
+    'Tomato_Mosaic_Virus',
+    'Tomato_Septoria_Leaf_Spot',
+    'Tomato_Yellow_Leaf_Curl',
+  ];
+
+  // State 
+  let password       = '';
+  let reviewerId     = '';
+  let reviewedCount  = 0;
+
+  // Login
+  const loginScreen = document.getElementById('login-screen');
+  const dashboard   = document.getElementById('dashboard');
+  const loginError  = document.getElementById('login-error');
+
+  async function tryLogin() {
+    const pw = document.getElementById('password-input').value.trim();
+    const id = document.getElementById('reviewer-id').value.trim();
+
+    if (!id) {
+      loginError.textContent = 'Please enter your reviewer ID';
+      loginError.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    loginError.style.display = 'none';
+
+    try {
+      const r = await fetch(`${API}/predictions/pending-review`, {
+        headers: { 'X-Password': pw }
+      });
+
+      if (r.status === 401) {
+        loginError.textContent = 'Incorrect password';
+        loginError.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+        return;
+      }
+
+      // Authenticated
+      password   = pw;
+      reviewerId = id;
+      document.getElementById('stat-reviewer').textContent = id;
+
+      loginScreen.style.display = 'none';
+      dashboard.style.display   = 'flex';
+
+      const data = await r.json();
+      renderQueue(data.predictions || []);
+
+    } catch (err) {
+      loginError.textContent = `Connection error: ${err.message}`;
+      loginError.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  }
+
+  document.getElementById('login-btn').addEventListener('click', tryLogin);
+  document.getElementById('password-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryLogin();
+  });
+
+  // Load queue 
+  async function loadQueue() {
+    document.getElementById('queue-loading').style.display = 'block';
+    document.getElementById('queue-empty').style.display   = 'none';
+    document.getElementById('queue-list').innerHTML        = '';
+
+    try {
+      const r    = await fetch(`${API}/predictions/pending-review`, {
+        headers: { 'X-Password': password }
+      });
+      const data = await r.json();
+      renderQueue(data.predictions || []);
+    } catch (err) {
+      document.getElementById('queue-loading').textContent = `Error loading queue: ${err.message}`;
+    }
+  }
+
+  document.getElementById('refresh-btn').addEventListener('click', loadQueue);
+
+  // Render queue 
+  function renderQueue(predictions) {
+    document.getElementById('queue-loading').style.display = 'none';
+    document.getElementById('stat-pending').textContent    = predictions.length;
+
+    const list = document.getElementById('queue-list');
+    list.innerHTML = '';
+
+    if (predictions.length === 0) {
+      document.getElementById('queue-empty').style.display = 'block';
+      return;
+    }
+
+    predictions.forEach(pred => {
+      list.appendChild(buildCard(pred));
+    });
+  }
+
+  // Build review card 
+  function buildCard(pred) {
+    const card = document.createElement('div');
+    card.className = 'review-card';
+    card.id = `card-${pred.id}`;
+
+    const timestamp = new Date(pred.timestamp).toLocaleString();
+    const conf      = ((pred.confidence || 0) * 100).toFixed(1);
+    const notes     = pred.metadata?.notes || '';
+    const lat       = pred.metadata?.latitude;
+    const lng       = pred.metadata?.longitude;
+    const device    = pred.metadata?.device_model || '—';
+    const modelPred = pred.predicted_class || '—';
+
+    const diseaseButtons = DISEASE_CLASSES.map(cls => {
+      const isModelPred = cls === modelPred;
+      return `<button
+        class="disease-btn${isModelPred ? ' is-model-prediction' : ''}"
+        data-class="${cls}"
+        title="${isModelPred ? 'Model prediction' : ''}"
+        onclick="selectDisease('${pred.id}', '${cls}', this)"
+      >${cls.replace('Tomato_', '').replace(/_/g,' ')}</button>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="review-card-inner">
+        <div class="card-image-wrap" id="img-wrap-${pred.id}">
+          <div class="card-image-placeholder">
+            <span class="spinner-sm"></span>
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="card-meta">
+            <div>
+              <div class="card-prediction">${modelPred.replace(/_/g,' ')}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;">
+                Model's prediction
+              </div>
+            </div>
+            <span class="card-confidence">UNCERTAIN · ${conf}%</span>
+          </div>
+
+          <div class="card-details">
+            <div class="detail-item">
+              <span class="detail-label">Submitted</span>
+              <span class="detail-value">${timestamp}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Device</span>
+              <span class="detail-value">${device}</span>
+            </div>
+            ${lat ? `<div class="detail-item">
+              <span class="detail-label">Location</span>
+              <span class="detail-value">${lat.toFixed(4)}, ${lng.toFixed(4)}</span>
+            </div>` : ''}
+            <div class="detail-item">
+              <span class="detail-label">Prediction ID</span>
+              <span class="detail-value" style="font-size:10px;color:var(--muted)">
+                ${pred.id.substring(0, 18)}...
+              </span>
+            </div>
+          </div>
+
+          ${notes ? `<div class="farmer-notes">"${notes}"</div>` : ''}
+
+          <div class="review-section">
+            <p class="review-section-label">
+              Select correct disease
+              <span style="color:var(--warn);margin-left:6px;">(dashed = model's prediction)</span>
+            </p>
+            <div class="disease-grid" id="grid-${pred.id}">
+              ${diseaseButtons}
+            </div>
+            <div class="reviewer-row">
+              <input
+                class="reviewer-input"
+                id="notes-${pred.id}"
+                placeholder="Optional notes..."
+                type="text"
+              >
+              <button
+                class="submit-review-btn"
+                id="submit-${pred.id}"
+                disabled
+                onclick="submitReview('${pred.id}')"
+              >Submit</button>
+            </div>
+            <div class="review-feedback" id="feedback-${pred.id}"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Load image
+    loadImage(pred.id);
+
+    return card;
+  }
+
+  // Load image 
+  async function loadImage(predId) {
+    const wrap = document.getElementById(`img-wrap-${predId}`);
+    try {
+      const r = await fetch(`${API}/predictions/${predId}/image`, {
+        headers: { 'X-Password': password }
+      });
+      if (!r.ok) throw new Error('not found');
+      const blob = URL.createObjectURL(await r.blob());
+      wrap.innerHTML = `<img src="${blob}" alt="leaf">`;
+    } catch {
+      wrap.innerHTML = `<div class="card-image-placeholder">No image</div>`;
+    }
+  }
+
+  // Disease selection 
+  function selectDisease(predId, cls, btn) {
+    const grid = document.getElementById(`grid-${predId}`);
+    grid.querySelectorAll('.disease-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    btn.dataset.selected = 'true';
+    document.getElementById(`submit-${predId}`).disabled = false;
+    document.getElementById(`submit-${predId}`).dataset.selectedClass = cls;
+  }
+
+  // Submit review 
+  async function submitReview(predId) {
+    const submitBtn    = document.getElementById(`submit-${predId}`);
+    const correctClass = submitBtn.dataset.selectedClass;
+    const notes        = document.getElementById(`notes-${predId}`).value;
+    const feedback     = document.getElementById(`feedback-${predId}`);
+
+    // Find what the model predicted to know if it was correct
+    const card     = document.getElementById(`card-${predId}`);
+    const modelPred = card.querySelector('.card-prediction').textContent.trim().replace(/ /g, '_');
+    const modelWasCorrect = correctClass.replace('Tomato_', '').replace(/_/g,' ')
+      === card.querySelector('.card-prediction').textContent.trim();
+
+    submitBtn.disabled    = true;
+    submitBtn.textContent = 'Saving...';
+    feedback.className    = 'review-feedback';
+    feedback.style.display = 'none';
+
+    try {
+      const r = await fetch(`${API}/predictions/${predId}/review`, {
+        method : 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Password'  : password,
+        },
+        body: JSON.stringify({
+          reviewer_id      : reviewerId,
+          correct_class    : correctClass,
+          model_was_correct: modelWasCorrect,
+          notes            : notes || null,
+        }),
+      });
+
+      if (!r.ok) {
+        const err = await r.json();
+        throw new Error(err.detail || `HTTP ${r.status}`);
+      }
+
+      // Success - animate card out
+      feedback.className   = 'review-feedback success';
+      feedback.textContent = `✓ Saved — ${correctClass.replace(/_/g,' ')}`;
+
+      reviewedCount++;
+      document.getElementById('stat-reviewed').textContent = reviewedCount;
+      document.getElementById('stat-pending').textContent  =
+        Math.max(0, parseInt(document.getElementById('stat-pending').textContent) - 1);
+
+      setTimeout(() => {
+        const cardEl = document.getElementById(`card-${predId}`);
+        cardEl.classList.add('removing');
+        setTimeout(() => {
+          cardEl.remove();
+          if (document.getElementById('queue-list').children.length === 0) {
+            document.getElementById('queue-empty').style.display = 'block';
+          }
+        }, 350);
+      }, 800);
+
+    } catch (err) {
+      feedback.className   = 'review-feedback error';
+      feedback.textContent = `Error: ${err.message}`;
+      submitBtn.disabled    = false;
+      submitBtn.textContent = 'Submit';
+    }
+  }
+</script>
+</body>
+</html>
