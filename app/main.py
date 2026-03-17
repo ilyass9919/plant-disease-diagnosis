@@ -55,9 +55,10 @@ if VERCEL_URL:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins  = allowed_origins,
-    allow_methods  = ["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers  = ["*"],
+    allow_origins     = ["*"],
+    allow_methods     = ["*"],
+    allow_headers     = ["*"],
+    allow_credentials = False,
 )
 
 app.include_router(router)
