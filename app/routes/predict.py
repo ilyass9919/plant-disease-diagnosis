@@ -166,13 +166,31 @@ def get_image(
     prediction_id: str,
     x_password: Optional[str] = Header(default=None),
 ):
-    """Serves the saved image for a prediction. Protected by X-Password header."""
+    """
+    Serves the leaf image for a prediction.
+    - If Cloudinary: returns a redirect to the Cloudinary URL
+    - If local: serves the file directly
+    """
     verify_agronomist(x_password)
 
+    record = get_prediction(prediction_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Prediction not found.")
+
+    from app.storage.prediction_store import USE_CLOUD
+
+    # Cloud mode - redirect to Cloudinary URL
+    if USE_CLOUD:
+        image_url = record.get("image_url")
+        if not image_url:
+            raise HTTPException(status_code=404, detail="Image URL not found.")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=image_url)
+
+    # Local mode - serve file from disk
     image_path = IMAGES_DIR / f"{prediction_id}.jpg"
     if not image_path.exists():
         raise HTTPException(status_code=404, detail="Image not found.")
-
     return FileResponse(str(image_path), media_type="image/jpeg")
 
 
