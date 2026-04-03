@@ -24,7 +24,7 @@ services:
         value: agent
       - key: APP_ENV
         value: production
-      # Secret vars - keep these in Render dashboard only
+      # Secret vars
       # SUPABASE_KEY
       # CLOUDINARY_API_KEY
       # CLOUDINARY_API_SECRET
