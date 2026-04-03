@@ -423,7 +423,26 @@
 </div>
 
 <script>
-  const API = 'https://tomato-disease-api-hcux.onrender.com';
+  const DEFAULT_REMOTE_API = 'https://tomato-disease-api-hcux.onrender.com';
+  const API = (() => {
+    const paramsApi = new URLSearchParams(window.location.search).get('api');
+    const storedApi = window.localStorage.getItem('LEAFSCAN_API_BASE');
+    if (paramsApi) {
+      window.localStorage.setItem('LEAFSCAN_API_BASE', paramsApi);
+      return paramsApi.replace(/\/$/, '');
+    }
+    if (storedApi) return storedApi.replace(/\/$/, '');
+    // When opened directly as a local file (file://), origin is "null".
+    // Fallback to local FastAPI default in that case.
+    if (!window.location.origin || window.location.origin === 'null') {
+      return 'http://127.0.0.1:8000';
+    }
+    // Vercel static hosting usually serves only the UI; the API runs on Render.
+    if (window.location.hostname.endsWith('vercel.app')) {
+      return DEFAULT_REMOTE_API;
+    }
+    return window.location.origin.replace(/\/$/, '');
+  })();
 
   const DISEASE_CLASSES = [
     'Tomato_Bacterial_Spot','Tomato_Early_Blight','Tomato_Healthy',
