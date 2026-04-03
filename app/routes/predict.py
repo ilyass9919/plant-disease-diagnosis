@@ -2,11 +2,13 @@ import base64
 import json
 import logging
 import os
+from urllib.error import URLError, HTTPError
+from urllib.request import urlopen
 from typing import Optional
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Header
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from app.models.model_loader import get_model
 from app.services.inference import run_inference
@@ -183,7 +185,7 @@ def get_image(
 ):
     """
     Serves the leaf image for a prediction.
-    - If Cloudinary: returns a redirect to the Cloudinary URL
+    - If Cloudinary: proxies bytes from the stored URL
     - If local: serves the file directly
     """
     verify_agronomist(x_password)
@@ -194,13 +196,22 @@ def get_image(
 
     from app.storage.prediction_store import USE_CLOUD
 
-    # Cloud mode - redirect to Cloudinary URL
+    # Cloud mode - proxy image bytes.
+    # NOTE: We avoid browser-side redirects here because the review UI fetches
+    # this endpoint with auth headers, and cross-origin redirects can fail due
+    # to CORS when converted to a Blob in JS.
     if USE_CLOUD:
         image_url = record.get("image_url")
         if not image_url:
             raise HTTPException(status_code=404, detail="Image URL not found.")
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=image_url)
+        try:
+            with urlopen(image_url, timeout=10) as upstream:
+                image_bytes = upstream.read()
+                media_type = upstream.headers.get_content_type() or "image/jpeg"
+            return Response(content=image_bytes, media_type=media_type)
+        except (HTTPError, URLError, TimeoutError) as e:
+            logger.error(f"Failed to fetch cloud image for {prediction_id}: {e}")
+            raise HTTPException(status_code=502, detail="Failed to fetch cloud image.")
 
     # Local mode - serve file from disk
     image_path = IMAGES_DIR / f"{prediction_id}.jpg"
