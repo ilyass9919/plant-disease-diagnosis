@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from io import BytesIO
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -17,8 +18,31 @@ SUPABASE_KEY  = os.getenv("SUPABASE_KEY", "")
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
 CLOUDINARY_API_KEY    = os.getenv("CLOUDINARY_API_KEY", "")
 CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+CLOUDINARY_URL        = os.getenv("CLOUDINARY_URL", "")
 
-USE_CLOUD = bool(SUPABASE_URL and SUPABASE_KEY and CLOUDINARY_CLOUD_NAME)
+
+def _derive_cloudinary_credentials_from_url() -> tuple[str, str, str]:
+    if not CLOUDINARY_URL:
+        return "", "", ""
+    try:
+        parsed = urlparse(CLOUDINARY_URL)
+        cloud_name = parsed.hostname or ""
+        api_key = parsed.username or ""
+        api_secret = parsed.password or ""
+        return cloud_name, api_key, api_secret
+    except Exception:
+        return "", "", ""
+
+
+if CLOUDINARY_URL and not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+    derived_name, derived_key, derived_secret = _derive_cloudinary_credentials_from_url()
+    CLOUDINARY_CLOUD_NAME = CLOUDINARY_CLOUD_NAME or derived_name
+    CLOUDINARY_API_KEY = CLOUDINARY_API_KEY or derived_key
+    CLOUDINARY_API_SECRET = CLOUDINARY_API_SECRET or derived_secret
+
+USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_KEY)
+USE_CLOUDINARY = bool(CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET)
+USE_CLOUD = USE_SUPABASE and USE_CLOUDINARY
 
 # Local fallback paths 
 LOG_PATH   = Path(os.getenv("PREDICTIONS_LOG", "data/predictions.jsonl"))
@@ -126,9 +150,13 @@ def log_prediction(
     prediction_id = str(uuid.uuid4())
 
     # Save image 
-    if USE_CLOUD:
+    if USE_CLOUDINARY:
         image_url = _upload_image_cloudinary(prediction_id, image_bytes)
-        logger.info(f"Image uploaded to Cloudinary: {image_url}")
+        if image_url:
+            logger.info(f"Image uploaded to Cloudinary: {image_url}")
+        else:
+            logger.warning("Cloudinary upload failed — falling back to local image storage")
+            image_url = _save_image_local(prediction_id, image_bytes)
     else:
         image_url = _save_image_local(prediction_id, image_bytes)
         logger.debug(f"Image saved locally: {image_url}")
@@ -150,7 +178,7 @@ def log_prediction(
     }
 
     # Log prediction 
-    if USE_CLOUD:
+    if USE_SUPABASE:
         success = _log_to_supabase(record)
         if not success:
             logger.warning("Supabase failed — falling back to local JSONL")
@@ -164,7 +192,7 @@ def log_prediction(
 
 def get_prediction(prediction_id: str) -> dict | None:
     """Fetches a single prediction by ID."""
-    if USE_CLOUD:
+    if USE_SUPABASE:
         try:
             db     = _get_supabase()
             result = db.table("predictions").select("*").eq("id", prediction_id).execute()
@@ -190,7 +218,7 @@ def get_prediction(prediction_id: str) -> dict | None:
 
 
 def get_pending_reviews() -> list[dict]:
-    if USE_CLOUD:
+    if USE_SUPABASE:
         try:
             db     = _get_supabase()
             result = (
@@ -222,7 +250,7 @@ def get_pending_reviews() -> list[dict]:
 
 def update_human_review(prediction_id: str, review: dict) -> bool:
     """Updates the human_review field for a prediction."""
-    if USE_CLOUD:
+    if USE_SUPABASE:
         try:
             db = _get_supabase()
             db.table("predictions").update({"human_review": review}).eq("id", prediction_id).execute()
