@@ -13,3 +13,4 @@ aiofiles==23.2.1
 huggingface-hub==0.23.0
 supabase==2.3.4
 cloudinary==1.38.0
+httpx==0.25.2
