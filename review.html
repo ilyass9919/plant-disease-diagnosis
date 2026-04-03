@@ -423,7 +423,16 @@
 </div>
 
 <script>
-  const API = 'https://tomato-disease-api-hcux.onrender.com';
+  const API = (() => {
+    const paramsApi = new URLSearchParams(window.location.search).get('api');
+    const storedApi = window.localStorage.getItem('LEAFSCAN_API_BASE');
+    if (paramsApi) {
+      window.localStorage.setItem('LEAFSCAN_API_BASE', paramsApi);
+      return paramsApi.replace(/\/$/, '');
+    }
+    if (storedApi) return storedApi.replace(/\/$/, '');
+    return window.location.origin;
+  })();
 
   const DISEASE_CLASSES = [
     'Tomato_Bacterial_Spot','Tomato_Early_Blight','Tomato_Healthy',
