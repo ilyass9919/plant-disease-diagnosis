@@ -57,6 +57,21 @@ def health_check():
         class_names   = loaded.config.class_names,
     )
 
+@router.get("/debug/storage", tags=["Debug"])
+def debug_storage():
+    """Temporary debug endpoint — shows storage config on Render."""
+    import os
+    from app.storage.prediction_store import USE_CLOUD
+    return {
+        "USE_CLOUD"             : USE_CLOUD,
+        "SUPABASE_URL_set"      : bool(os.getenv("SUPABASE_URL")),
+        "SUPABASE_KEY_set"      : bool(os.getenv("SUPABASE_KEY")),
+        "CLOUDINARY_NAME_set"   : bool(os.getenv("CLOUDINARY_CLOUD_NAME")),
+        "CLOUDINARY_KEY_set"    : bool(os.getenv("CLOUDINARY_API_KEY")),
+        "CLOUDINARY_SECRET_set" : bool(os.getenv("CLOUDINARY_API_SECRET")),
+        "SUPABASE_URL_value"    : os.getenv("SUPABASE_URL", "NOT SET")[:30],
+    }
+
 
 @router.post("/predict", response_model=PredictionResponse, tags=["Inference"])
 async def predict(
