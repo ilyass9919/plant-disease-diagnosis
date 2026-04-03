@@ -146,7 +146,7 @@ def log_prediction(
         "image_filename"   : image_filename,
         "image_url"        : image_url,
         "metadata"         : metadata or {},
-        "human_review"     : None,
+        # human_review intentionally omitted - stays as SQL NULL in Supabase
     }
 
     # Log prediction 
@@ -190,7 +190,6 @@ def get_prediction(prediction_id: str) -> dict | None:
 
 
 def get_pending_reviews() -> list[dict]:
-    """Returns all UNCERTAIN predictions with no human review yet."""
     if USE_CLOUD:
         try:
             db     = _get_supabase()
@@ -198,7 +197,7 @@ def get_pending_reviews() -> list[dict]:
                 db.table("predictions")
                 .select("*")
                 .eq("status", "UNCERTAIN")
-                .is_("human_review", "null")
+                .is_("human_review", "null")   # column is SQL NULL
                 .order("timestamp", desc=True)
                 .execute()
             )
